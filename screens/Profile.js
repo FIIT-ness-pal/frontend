@@ -36,14 +36,25 @@ const Profile = ({navigation}) => {
             response = await fetch('https://fiitness-pal.ey.r.appspot.com/userPhoto?id=' + user.id, {
                 method: 'GET',
                 headers: {
-                    'Authorization': token
+                    'Authorization': token,
                 }
             })
         }
         catch (err) {
             console.log(err)
         }
-        console.log(JSON.stringify(response))
+        console.log("response", JSON.stringify(response.body))
+        const imageBlob = await response.blob()
+        const imageObjectUrl = await URL.createObjectURL(imageBlob)
+        const fr = new FileReader();
+        fr.onload = async () => {
+            const fileUri = `${FileSystem.documentDirectory}/avatar.png`;
+            await FileSystem.writeAsStringAsync(fileUri, fr.result.split(',')[1], { encoding: FileSystem.EncodingType.Base64 });
+            Sharing.shareAsync(fileUri);
+        };
+        await fr.readAsDataURL(image);
+        console.log('imageURL', imageObjectUrl)
+        setImage(imageObjectUrl)
     }, [])
 
     useEffect(async () => {
