@@ -1,22 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Button, SafeAreaView, FlatList } from 'react-native'
+import { View, Text, StyleSheet, Button, SafeAreaView, FlatList, TouchableOpacity, Modal } from 'react-native'
 import colors from '../config/colors'
 import Pressable from 'react-native/Libraries/Components/Pressable/Pressable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Item = ({ time, title, calories }) => (
-    <View style={{ backgroundColor: colors.primary, borderRadius: 5, marginBottom: 10, flexDirection: 'row', width: 300 }}>
-        <View style={{ float: 'left', flex: 1 }}>
-            <Text style={{ textAlign: 'left', fontSize: 20, paddingLeft: 10 }}>{`${time.split(':')[0]}:${time.split(':')[1]}`}</Text>
-        </View>
-        <View style={{ float: 'center', flex: 1 }}>
-            <Text style={{ textAlign: 'center', fontSize: 20 }} numberOfLines={1}>{title}</Text>
-        </View>
-        <View style={{ float: 'left', flex: 1 }}>
-            <Text style={{ textAlign: 'right', fontSize: 20, paddingRight: 10 }}>{calories} cal</Text>
-        </View>
-    </View>
-);
+const Item = ({ time, title, calories, id, carbs, protein, fat }) => {
+    
+};
 
 
 const Homescreen = ({ navigation }) => {
@@ -26,6 +16,10 @@ const Homescreen = ({ navigation }) => {
     const [date, setDate] = useState(new Date())
     const [logs, setLogs] = useState([])
     const hour = new Date().getHours()
+
+    const [modalVisible, setModalVisible] = useState(false)
+    const [currentItem, setCurrentItem] = useState({})
+
 
     /* Get the name and caloriesGoal of the user */
     useEffect(async () => {
@@ -86,7 +80,7 @@ const Homescreen = ({ navigation }) => {
 
     /* Get the logs of the day */
     useEffect(async () => {
-        const myDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+       const myDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
        const token = await AsyncStorage.getItem('@accessToken')
         if (token == null) {
             navigation.navigate('Login')
@@ -132,14 +126,101 @@ const Homescreen = ({ navigation }) => {
     }
 
     const renderItem = ({ item }) => {
+
+        const deleteFromLog = async () => {
+            const token = await AsyncStorage.getItem('@accessToken')
+            if (token == null) {
+                navigation.navigate('Login')
+                return
+            }
+            let response
+            try {
+                response = await fetch('https://fiitness-pal.ey.r.appspot.com/log?id=' + currentItem.id, {
+                    method: 'DELETE',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        Authorization: token
+                    }
+                })
+            }
+            catch (error) {
+                console.log(error)
+            }
+
+            let json
+            try {
+                json = await response.json()
+                
+                let tmpCalories;
+                for(let i = 0; i < logs.length; i++) {
+                    if(logs[i].id == currentItem.id) {
+                        tmpCalories = logs[i].calories
+                        logs.splice(i, 1);
+                        break;
+                    }
+                }
+
+                setValues(
+                    { 
+                        calories: parseFloat(values.calories - tmpCalories).toFixed(2),
+                        carbs: parseFloat(values.carbs - currentItem.carbs).toFixed(2), 
+                        protein: parseFloat(values.protein - currentItem.protein).toFixed(2), 
+                        fat: parseFloat(values.fat - currentItem.fat).toFixed(2) 
+                    }
+                )
+                setLogs(logs);
+            }
+            catch {
+                console.log("error json", JSON.stringify(response))
+            }
+            console.log("json", json)
+        }
+
         return (
-            <Item
-                item={item}
-                title={item.name}
-                calories={item.calories}
-                time={item.time}
-            />
-        );
+            <View>
+                <TouchableOpacity style={{ backgroundColor: colors.primary, borderRadius: 5, marginBottom: 10, width: 300}} onPressOut={() => {setModalVisible(true); setCurrentItem(item)}}>
+                    <View style={{flexDirection: 'row', width: 300 }}>
+                        <View style={{ float: 'left', flex: 1 }}>
+                            <Text style={{ textAlign: 'left', fontSize: 20, paddingLeft: 10 }}>{`${item.time.split(':')[0]}:${item.time.split(':')[1]}`}</Text>
+                        </View>
+                        <View style={{ float: 'left', flex: 1 }}>
+                            <Text style={{ textAlign: 'right', fontSize: 20, paddingRight: 10 }}>{item.calories} cal</Text>
+                        </View>
+                    </View>
+                    <View style={{ float: 'center', flex: 1 }}>
+                        <Text style={{ textAlign: 'center', fontSize: 20 }} numberOfLines={2}>{item.name}</Text>
+                    </View>
+                </TouchableOpacity>
+
+                <Modal animationType="none" transparent={true} visible={modalVisible}
+                    onRequestClose={() => {
+                        setModalVisible(!modalVisible);
+                    }}
+                >
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <Text style={{textAlign: 'center', fontSize: 25, marginBottom: 10}}>{currentItem.name}</Text>
+                            <View style={{flexDirection: 'row', alignItems:'center'}}>
+                                <View style={{ flex: 1}}> 
+                                    <Text style={{textAlign: 'center', fontSize: 20}}>Carbs: {currentItem.carbs}</Text>
+                                </View>
+                                <View style={{ flex: 1}}>
+                                    <Text style={{textAlign:'center', fontSize: 20}}>Protein: {currentItem.protein}</Text>
+                                </View>
+                                <View style={{flex: 1}}>
+                                    <Text style={{textAlign: 'center', fontSize: 20}}>Fat: {currentItem.fat}</Text>
+                                </View>
+                            </View>
+                            <View style={{flexDirection:'row'}}>
+                                <Button style={{flex: 1}} title="Cancel" onPress={() => {setModalVisible(false)}}/>  
+                                <Button style={{flex: 1}} title="Delete from log" onPress={() => {deleteFromLog(); setModalVisible(false);}}/>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            </View>
+        )
     };
 
     return (
@@ -207,7 +288,28 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: 20,
-    }
+    },
+    centeredView: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		marginTop: 22,
+	},
+	modalView: {
+		margin: 20,
+		backgroundColor: "white",
+		borderRadius: 20,
+		padding: 10,
+		alignItems: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+		elevation: 5
+	},
 })
 
 export default Homescreen
