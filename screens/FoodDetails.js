@@ -9,7 +9,7 @@ const FoodDetails = ({route, navigation}) => {
     const [modalVisible, setModalVisible] = useState(false)
     const [amount, setAmount] = useState('100')
     const [text, onChangeText] = useState('')
-    const {id} = route.params
+    const {id, fnc} = route.params
 
     useEffect(async () => {
         const token = await AsyncStorage.getItem('@accessToken')
@@ -92,6 +92,21 @@ const FoodDetails = ({route, navigation}) => {
         //navigation.navigate('Home')
     } 
 
+    const addToMeal = () => {
+        navigation.navigate('CreateMeal', {
+            food: {
+                name: food.name,
+                calories: amount * food.calories / 100,
+                protein: amount * food.protein / 100,
+                carbs: amount * food.carbs / 100,
+                fat: amount * food.fat / 100,
+                brand: food.brand,
+                id: food.id
+            },
+            amount: amount
+        })
+    }
+
     return(
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <SafeAreaView>
@@ -100,7 +115,7 @@ const FoodDetails = ({route, navigation}) => {
                     <Pressable onPress={() => { navigation.goBack() }} style={{flex: 1, float: 'left'}}>
                         <Text style={{ fontSize: 25, textAlignVertical: 'top', padding: 10 }}>{'< Back'}</Text>
                     </Pressable>
-                    <Button style={{flex: 1, float: 'right', padding: 10}} title={'Add'} onPress={addToLog}/>
+                    <Button style={{flex: 1, float: 'right', padding: 10}} title={'Add'} onPress={fnc === "addToLog" ? addToLog : addToMeal}/>
                 </View>
 
                 {/* Title */}

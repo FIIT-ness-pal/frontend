@@ -84,7 +84,7 @@ const MealDetails = ({route, navigation}) => {
             <View style={{flex: 1, float: 'left'}}>
                 <Text style={{fontSize: 15}}>{item.name}</Text>
                 <Text>{item.brand}</Text>
-                <Text>{item.calories}</Text>
+                <Text>{item.calories} cal</Text>
             </View>
             <View style={{flex: 1, float: 'right'}}> 
                 <Text style={{fontSize: 15, textAlign: 'right'}}>{item.amount} g</Text>
@@ -103,7 +103,7 @@ const MealDetails = ({route, navigation}) => {
             {/* Title */}
             <View style={{padding: 10}}>
                 <Text style={{fontSize: 30, padding: 20, textAlign: 'center'}}>{meal.name}</Text>
-                <Text style={{textAlign:'right'}}>Name Surname</Text>
+                <Text style={{textAlign:'right'}}>{`${meal.firstName} ${meal.lastName}`}</Text>
             </View>
             {/* Values */}
             <View style={{padding: 5, flexDirection: 'row', borderBottomColor: 'black'}}>
