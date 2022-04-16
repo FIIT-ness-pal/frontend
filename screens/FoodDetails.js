@@ -140,7 +140,7 @@ const FoodDetails = ({route, navigation}) => {
                     </View>
                 </View>
                 
-                <View style={{borderBottomColor: 'black', borderBottomWidth: '1px', marginLeft: 20, marginRight: 20}}/>
+                <View style={{borderBottomColor: 'black', borderBottomWidth: 1, marginLeft: 20, marginRight: 20}}/>
                 {/* Details */}
                 <View style={{flexDirection: 'row', width: 300, padding: 20}}>
                     <View style={{flex: 1, float: 'left', paddingLeft: 100, justifyContent: 'center'}}>
@@ -151,7 +151,7 @@ const FoodDetails = ({route, navigation}) => {
                     </View> 
                 </View>
                 
-            <View style={{borderBottomColor: 'black', borderBottomWidth: '1px', marginLeft: 20, marginRight: 20}}/>
+            <View style={{borderBottomColor: 'black', borderBottomWidth: 1, marginLeft: 20, marginRight: 20}}/>
                 {/* Modal */}
                 <Modal
                     animationType="none"
